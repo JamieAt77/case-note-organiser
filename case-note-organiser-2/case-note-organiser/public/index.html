@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Note Organiser</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        .case-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            background-color: #fafafa;
+        }
+        .case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .case-reference {
+            font-weight: bold;
+            font-size: 18px;
+            color: #2c5aa0;
+        }
+        .case-member {
+            color: #666;
+        }
+        .case-note {
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+        .delete-btn {
+            background-color: #f44336;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .delete-btn:hover {
+            background-color: #da190b;
+        }
+        .update-btn {
+            background-color: #2196F3;
+            padding: 5px 10px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        .update-btn:hover {
+            background-color: #0b7dda;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Case Note Organiser</h1>
+        
+        <!-- Add Case Form -->
+        <form id="addCaseForm">
+            <div class="form-group">
+                <label for="caseReference">Case Reference:</label>
+                <input type="text" id="caseReference" required>
+            </div>
+            <div class="form-group">
+                <label for="memberName">Member Name:</label>
+                <input type="text" id="memberName" required>
+            </div>
+            <div class="form-group">
+                <label for="note">Note:</label>
+                <textarea id="note" rows="4" required></textarea>
+            </div>
+            <button type="submit">Add Case</button>
+        </form>
+
+        <!-- Search -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search by case reference or member name...">
+            <button id="searchBtn">Search</button>
+        </div>
+
+        <!-- Cases List -->
+        <div id="casesList"></div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const addCaseForm = document.getElementById('addCaseForm');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const casesList = document.getElementById('casesList');
+
+        // Load all cases when page loads
+        window.addEventListener('load', loadCases);
+
+        // Add case form submission
+        addCaseForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const caseReference = document.getElementById('caseReference').value;
+            const memberName = document.getElementById('memberName').value;
+            const note = document.getElementById('note').value;
+            
+            try {
+                const response = await fetch('/api/cases', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        caseReference,
+                        memberName,
+                        note
+                    })
+                });
+                
+                if (response.ok) {
+                    // Reset form
+                    addCaseForm.reset();
+                    // Reload cases
+                    loadCases();
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + error.error);
+                }
+            } catch (error) {
+                console.error('Error adding case:', error);
+                alert('Error adding case');
+            }
+        });
+
+        // Search functionality
+        searchBtn.addEventListener('click', loadSearchResults);
+
+        // Load all cases
+        async function loadCases() {
+            try {
+                const response = await fetch('/api/cases');
+                const cases = await response.json();
+                displayCases(cases);
+            } catch (error) {
+                console.error('Error loading cases:', error);
+                casesList.innerHTML = '<p>Error loading cases</p>';
+            }
+        }
+
+        // Load search results
+        async function loadSearchResults() {
+            const query = searchInput.value.trim();
+            if (!query) {
+                loadCases();
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/cases/search/${encodeURIComponent(query)}`);
+                const cases = await response.json();
+                displayCases(cases);
+            } catch (error) {
+                console.error('Error searching cases:', error);
+                casesList.innerHTML = '<p>Error searching cases</p>';
+            }
+        }
+
+        // Display cases in the UI
+        function displayCases(cases) {
+            if (cases.length === 0) {
+                casesList.innerHTML = '<p>No cases found.</p>';
+                return;
+            }
+
+            let html = '';
+            cases.forEach(caseItem => {
+                html += `
+                    <div class="case-item">
+                        <div class="case-header">
+                            <span class="case-reference">${caseItem.caseReference}</span>
+                            <span class="case-member">Member: ${caseItem.memberName}</span>
+                        </div>
+                        <div class="case-note">${caseItem.note}</div>
+                        <div style="margin-top: 10px; font-size: 12px; color: #888;">
+                            Created: ${new Date(caseItem.createdAt).toLocaleString()}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            casesList.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

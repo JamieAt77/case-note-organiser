@@ -1,0 +1,40 @@
+{
+  "cases": [
+    {
+      "id": "1794655606957",
+      "caseReference": "CASE-001",
+      "memberName": "John Smith",
+      "note": "Initial consultation",
+      "createdAt": "2026-11-14T11:26:46.957Z"
+    },
+    {
+      "id": "1794655613971",
+      "caseReference": "CASE-002",
+      "memberName": "Jane Doe",
+      "note": "Follow-up meeting",
+      "createdAt": "2026-11-14T11:26:53.971Z"
+    },
+    {
+      "id": "1794655624099",
+      "caseReference": "CASE-003",
+      "memberName": "Bob Johnson",
+      "note": "Initial call",
+      "createdAt": "2026-11-14T11:27:04.099Z"
+    },
+    {
+      "id": "1794655624115",
+      "caseReference": "CASE-004",
+      "memberName": "Alice Brown Updated",
+      "note": "Updated meeting details",
+      "createdAt": "2026-11-14T11:27:04.115Z",
+      "updatedAt": "2026-11-14T11:27:04.124Z"
+    },
+    {
+      "id": "1794655647627",
+      "caseReference": "WEB-TEST",
+      "memberName": "Web User",
+      "note": "Testing web interface",
+      "createdAt": "2026-11-14T11:27:27.627Z"
+    }
+  ]
+}
